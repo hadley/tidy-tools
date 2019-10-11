@@ -22,6 +22,7 @@ Slides:
 
 * [Intro to package development](1-intro.pdf)
 * [Testing](2-testing.pdf)
+* [Sharing](3-sharing.pdf)
 
 ## Setup
 
@@ -44,6 +45,11 @@ install <- c(
 ```
 ```{r code = install, eval = FALSE}
 ```
+
+```{r, eval = FALSE}
+usethis::create_from_github("hadley/fordogs", fork = FALSE)
+```
+
 
 * When you're done, put a green post-it on your computer. 
 * If you need help, put up a pink post-it.

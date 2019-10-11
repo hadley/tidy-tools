@@ -17,6 +17,7 @@ Slides:
 
   - [Intro to package development](1-intro.pdf)
   - [Testing](2-testing.pdf)
+  - [Sharing](3-sharing.pdf)
 
 ## Setup
 
@@ -24,6 +25,10 @@ Slides:
 install.packages(c("tidyverse", "devtools"))
 install.packages(c("fs", "glue", "lobstr", "rematch2", "sloop", "vctrs"))
 devtools::install_github("r-lib/itdepends")
+```
+
+``` r
+usethis::create_from_github("hadley/fordogs", fork = FALSE)
 ```
 
   - When you’re done, put a green post-it on your computer.
