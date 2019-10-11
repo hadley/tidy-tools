@@ -41,6 +41,10 @@ Why the difference? Functions in packages look for variables in a different way 
 * What's the "default" environment?
 * How can you easily see the contents of an environment?
 
+```{r}
+countdown::countdown_fullscreen(3)
+```
+
 ## Scoping
 
 When you type `x`, how does find the value associated with the name `x`? It basically uses a recursive function:

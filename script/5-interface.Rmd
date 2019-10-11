@@ -9,6 +9,10 @@ Goal for today is focus on the interface of functions, because I think this is a
 
 **Your turn**: What are the properties of a function that define its interface?
 
+```{r}
+countdown::countdown_fullscreen(3)
+```
+
 * Name
 * Inputs (i.e. argument)
   * Names
