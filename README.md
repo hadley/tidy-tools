@@ -13,6 +13,10 @@ Notes and live code a 2-day workshop on “tidy tools”. This workshop is
 because you’ll find answers to some of the exercises, and you’ll learn
 more if you try to work through them first.
 
+Slides:
+
+  - [Introduction + Whole game](1-intro.pdf)
+
 ## Setup
 
 ``` r
@@ -20,3 +24,6 @@ install.packages(c("tidyverse", "devtools"))
 install.packages(c("fs", "glue", "lobstr", "rematch2", "sloop", "vctrs"))
 devtools::install_github("r-lib/itdepends")
 ```
+
+  - When you’re done, put a green post-it on your computer.
+  - If you need help, put up a pink post-it.
