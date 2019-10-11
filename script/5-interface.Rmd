@@ -3,6 +3,8 @@
 * interface = outside
 * implementation = inside
 
+<http://principles.tidyverse.org/>
+
 Goal for today is focus on the interface of functions, because I think this is an important change in mindset when you start developing functions. You have to think how they fit together into a great whole.
 
 **Your turn**: What are the properties of a function that define its interface?
