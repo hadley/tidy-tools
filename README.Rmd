@@ -1,0 +1,41 @@
+---
+output: github_document
+---
+
+<!-- README.md is generated from README.Rmd. Please edit that file -->
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+# Tidy tools
+
+<!-- badges: start -->
+<!-- badges: end -->
+
+Notes and live code for (part of) a 2-day workshop on "tidy tools".
+
+## Setup
+
+```{r, echo = FALSE, include = FALSE}
+deps <- unique(sort(renv::dependencies()$Package))
+deps <- setdiff(deps, c(
+  "ns", # created during class
+  "rmarkdown", # only needed for .Rmd
+  "itdepends", # not on CRAN
+  "stats", # recommended
+  tidyverse::tidyverse_packages(),
+  NULL
+))
+install <- c(
+  'install.packages(c("tidyverse", "devtools"))',
+  paste0("install.packages(c(", paste0(encodeString(deps, quote = '"'), collapse = ", "), "))"),
+  'devtools::install_github("r-lib/itdepends")'
+)
+```
+```{r code = install, eval = FALSE}
+```
+
