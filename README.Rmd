@@ -20,7 +20,8 @@ Notes and live code a 2-day workshop on "tidy tools". This workshop is (mostly) 
 
 Slides:
 
-* [Introduction + Whole game](1-intro.pdf)
+* [Intro to package development](1-intro.pdf)
+* [Testing](2-testing.pdf)
 
 ## Setup
 

@@ -15,7 +15,8 @@ more if you try to work through them first.
 
 Slides:
 
-  - [Introduction + Whole game](1-intro.pdf)
+  - [Intro to package development](1-intro.pdf)
+  - [Testing](2-testing.pdf)
 
 ## Setup
 
