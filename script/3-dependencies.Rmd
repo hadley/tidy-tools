@@ -1,0 +1,318 @@
+# Dependencies
+
+* Motivation
+* Scoping: how functions find variables
+* `NAMESPACE`
+* `DESCRIPTION`
+* When should you take a dependency?
+
+## Motivation
+
+```{r}
+sd
+```
+
+What happens if we override `var()`?
+
+```{r}
+x <- c(10, 1, 5, 2, 3, 5)
+sd(x)
+
+var <- function(x, na.rm = FALSE) 100
+sd(x)
+```
+
+What if we create our own `my_sd()`?
+
+```{r}
+my_sd <- function (x, na.rm = FALSE) {
+  sqrt(var(x, na.rm = na.rm))
+}
+
+my_sd(x)
+```
+
+Why the difference? Functions in packages look for variables in a different way to functions in scripts (i.e. functions in the global environment). There is a subtle difference in the scoping rules
+
+### Warm ups
+
+* What's an environment?
+* How it different to a list?
+* What's the "default" environment?
+* How can you easily see the contents of an environment?
+
+## Scoping
+
+When you type `x`, how does find the value associated with the name `x`? It basically uses a recursive function:
+
+```{r}
+library(rlang)
+
+find_var <- function(name, env) {
+  if (env_has(env, name)) {
+    env_get(env, name)
+  } else {
+    find_var(name, env_parent(env))
+  }
+}
+
+find_var <- function(name, env) {
+  if (identical(env, empty_env())) {
+    stop("Can't find", name)
+  } else if (env_has(env, name)) {
+    env_get(env, name)
+  } else {
+    find_var(name, env_parent(env))
+  }
+}
+```
+
+This same rule is always applied, regardless of whether a function is in a package or script. So what's the difference?
+
+```{r}
+sd_env <- get_env(sd)
+env_print(sd_env)
+env_names(sd_env)
+sd_env$var
+
+get_env(my_sd)$var
+```
+
+```{r}
+env_parents(get_env(sd))
+```
+
+## Namespaces
+
+### How does this work in a package?
+
+* `create_package("~/desktop/ns")`
+* `use_mit_license()`
+* `use_r("my_sd")`
+
+    ```{r}
+    #' My standard deviation function
+    #'
+    #' @param x A numeric vector
+    #' @param na.rm Remove missing values?
+    #' @export
+    my_sd <- function (x, na.rm = FALSE) {
+      sqrt(var(x, na.rm = na.rm))
+    }
+    ```
+
+* `devtools::check()`
+
+```
+❯ checking R code for possible problems ... NOTE
+  my_sd: no visible global function definition for ‘var’
+  Undefined global functions or variables:
+    var
+  Consider adding
+    importFrom("stats", "var")
+  to your NAMESPACE file.
+```
+
+Build and reload
+
+```{r}
+my_sd(1:5)
+
+var <- function(x, na.rm = FALSE) 100
+my_sd(1:5)
+```
+
+
+```{r}
+#' @importFrom stats var
+```
+
+Then `document()`, then look at `NAMESPACE`
+
+Build and reload
+
+```{r}
+my_sd_env <- get_env(ns::my_sd)
+my_sd_env
+
+env_print(env_parent(my_sd_env))
+env_parent(my_sd_env)$var
+
+# Is this a copy? No!
+lobstr::ref(stats::var, env_parent(my_sd_env)$var)
+```
+
+**Your turn**:
+Why doesn't `sqrt()` need a namespace or an import?
+(Hint: what package is this found in? Why is it special?)
+
+### Other options
+
+```{r}
+my_sd <- function (x, na.rm = FALSE) {
+  sqrt(stats::var(x, na.rm = na.rm))
+}
+```
+
+```{r}
+#' @import stats
+my_sd <- function (x, na.rm = FALSE) {
+  sqrt(var(x, na.rm = na.rm))
+}
+```
+
+For functions that you only use in few functions I think this is easier for the human (although it's slightly more work for the computer)
+
+* Never use `@import`
+* Prefer `::`
+* Use `@importFrom` when `::` gets annoying, or for infix functions (more on that later)
+
+### `NAMESPACE`
+
+Looking at the NAMESPACE file can be a useful way to get a glimpse of the whole package.
+
+## DESCRIPTION
+
+The stats package is special because it's a base package that's always available. That makes life easier. In most cases, however, you will import from other CRAN packages. If you do:
+
+```{r}
+#' @importFrom ggplot2 ggplot2
+```
+
+You will get this confusing error message:
+
+```
+❯ checking package dependencies ... ERROR
+  Namespace dependency not required: ‘ggplot2’
+  
+  See section ‘The DESCRIPTION file’ in the ‘Writing R Extensions’
+  manual.
+```
+
+What it is telling you is that your `NAMESPACE` depends on a package that is not listed in the `DESCRIPTION`. To fix this: `use_package("ggplot2")`.
+
+* `DESCRIPTION` is all about package level.
+* `NAMESPACE` is at function level.
+
+### Imports vs suggests
+
+Main decision is whether to put function in imports or suggests. Generally, imports is the right place. There are a few exceptions that should go in suggests:
+
+* Optional, low-benefit, high-cost 
+* Only needed in tests (i.e. other developers need it)
+* Only needed in examples/vignettes (common for data package)
+* Extending package by providing methods
+
+If suggested, you should protect code:
+
+```{r}
+if (requireNamespace("ggplot2", quietly = FALSE)) {
+  
+}
+```
+
+`use_package(type = "suggest")` will remind you how to do this.
+
+## When to take a dependency?
+
+**Your turn**: Brainstorm the costs and benefits of taking a dependency.
+
+Costs:
+* install time
+* download size
+* system dependenices
+* recursive dependencies
+* behaviour of your package might change
+
+Benefits:
+* safer code
+* faster code
+* someone else wrote the code
+
+Most of the costs are proportional to the number of people using your package. So when you start out, it's genuinely something that you shouldn't worry too much about. Keep an ear out for people having problems, and don't add gratuitiously, but otherwise don't worry about it. If you're using a single function from a package, might not be worth it. But beware false friends.
+
+**Your turn**: How can you measure the costs? Look at the CRAN pages for glue vs. dplyr. What can you learn?
+
+```{r}
+# http://github.com/r-lib/itdepends/issues/new
+itdepends::dep_weight(c("glue", "dplyr"))
+```
+
+Talk through different fields.
+
+### Do as we say not as we do
+
+We have different constraints:
+
+* Full time programmers
+* Hundreds of thousands of users
+
+Sometimes the tidyverse team avoids taking dependencies even if it causes substantially more work for us. More important when packages downloaded hundreds of thousands of times. Other packages (usethis, pkgdown) we don't care that much about.
+
+Other teams have different constraints _and_ different values.
+
+```{r}
+View(itdepends::dep_weight(c("data.table", "dplyr")))
+```
+
+### Case studies
+
+### dplyr vs. tidyverse
+
+### Matching strings
+
+```{r}
+dates <- c(
+  "2016-04-20", "1977-08-08", "not a date", "2016",
+  "76-03-02", "2012-06-30", "2015-01-21 19:58", NA
+)
+
+isodate <- "([0-9]{4})-([0-1][0-9])-([0-3][0-9])"
+
+matches <- regexec(isodate, dates)
+regmatches(dates, matches)
+
+stringr::str_match(dates, isodate)
+
+rematch2::re_match(text = dates, pattern = isodate)
+```
+
+* What's the cost of depedending on stringr? What's the cost of depending on rematch2?
+* What's the benefit of using `str_match()`? What's the benefit of usign `re_match()`?
+
+### fs package
+  
+```{r}
+# base R
+path1 <- tempfile()
+path2 <- tempfile()
+
+file.copy(path1, path2)
+file.create(path1)
+file.copy(path1, path2)
+file.copy(path1, path2)
+
+library(fs)
+
+path1 <- file_temp()
+path2 <- file_temp()
+
+file_copy(path1, path2)
+file_create(path1)
+file_copy(path1, path2)
+file_copy(path1, path2)
+```
+
+* how heavy is fs?
+* how does `file_copy()` differ from `file.copy()`?
+* what other benefits does fs have? <http://fs.r-lib.org/>
+
+## `[` vs `filter()`
+
+```{r}
+df <- data.frame(x = c(1:10, NA))
+
+df[df$x < 5, ]
+dplyr::filter(df, x < 5)
+```
+

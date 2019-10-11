@@ -1,0 +1,307 @@
+# Tidyverse in packages
+
+Inspired by <https://ggplot2.tidyverse.org/dev/articles/ggplot2-in-packages.html>, thanks to http://github.com/paleolimbot. I'm going to focus on ggplot2, with a dash of dplyr, but the same principles apply to basically any function in the tidyverse.
+
+* How to refer to functions (recap)
+* Tidy evaluation
+* Should you use the pipe?
+
+```{r setup}
+library(tidyverse)
+```
+
+## Referring to functions
+
+To recap: I think you should start with this:
+
+```{r}
+mtcars_summary <- function() {
+  ggplot2::ggplot(mtcars) + 
+    ggplot2::geom_bar(ggplot2::aes(cyl)) + 
+    ggplot2::coord_flip()
+}
+```
+
+And only change to:
+
+```{r}
+#' @importFrom ggplot2 ggplot aes geom_bar coord_flip
+mpg_drv_summary <- function() {
+  ggplot(mtcars) + 
+    geom_bar(aes(cyl)) + 
+    coord_flip()
+}
+```
+
+**NEVER DO THIS**:
+
+```{r}
+#' @import ggplot2
+mpg_drv_summary <- function() {
+  ggplot(mtcars) + 
+    geom_bar(aes(cyl)) + 
+    coord_flip()
+}
+```
+
+Because ggplot2 isn't designed with this usage in mind, so it's likely to create conflicts in the future)
+
+**Your turn**: put the above function in a package and check it:
+
+* `usethis::create_package("ggplot2test")`
+* `usethis::use_mit_license()`
+* `usethis::use_r("summary")`
+* `devtools::check()`
+
+What problem does R CMD check uncover? How do you fix it?
+
+## What is tidy eval?
+
+**Your turn**
+
+What do these function calls have in common?
+
+```{r}
+diamonds %>% 
+  ggplot(aes(carat, price)) + 
+  geom_hex()
+diamonds %>% 
+  group_by(color, clarity) %>% 
+  summarise(price = mean(price))
+```
+
+
+---
+
+At its heart tidyeval blurs the line between variables in an environment and variables in a data frame. These are deceptively similar because we use the same word for them. One reason that tidy eval is hard is that you have to start to separate these two concepts in your brain (and the point of the tidyverse is so that you don't have to).
+
+```{r}
+a <- 1
+df <- data.frame(b = 1)
+
+mutate(df, c = a + b)
+ggplot(df, aes(a, b)) + geom_point()
+```
+
+This blurring makes for elegant data analysis code but causes two problems:
+
+* `R CMD check` can't find df-vars in the environment, so complains
+* It's hard to use indirection; i.e. storing a df-var in an env-var
+
+Tidy evaluation is implemented by the rlang package, primarily through `enquo()` and `eval_tidy()`. We're not going to talk about the underlying theory today. I think it's beautiful and elegant and wonderful. Instead we're going to focus on the practicalties.
+
+### Using `aes()` in functions
+
+```
+N  checking R code for possible problems (2.7s)
+   mpg_drv_summary: no visible binding for global variable ‘cyl’
+   Undefined global functions or variables:
+     cyl
+```
+
+The first problem you'll encounter when using tidy evaluation in packages is that `R CMD check` reports that the data frame variables you use don't have visible bindings. This is true! But it's not important because `aes()` isn't looking in the environment; `R CMD check` doesn't know that.
+
+One general way to silence this problem is to use `globalVariables()`:
+
+```{r}
+globalVariables("cyl")
+```
+
+<https://stackoverflow.com/questions/9439256>
+
+But for tidyeval there's a slightly better way that clarifies the intent of your code a little:
+
+```{r}
+#' @importFrom rlang .data
+#' @importFrom ggplot2 ggplot aes geom_bar coord_flip
+mpg_drv_summary <- function() {
+  ggplot(mtcars) + 
+    geom_bar(aes(.data$cyl)) + 
+    coord_flip()
+}
+```
+
+This removes the ambiguity about whether `cyl` is in the data or the environment. It only works in functions that use tidy evaluation.
+
+Note that you'll need to `use_package("rlang")` but this doesn't actually increase the dependencies of your package.
+
+## Using tidy eval in your own functions
+
+### Try to avoid it
+
+Pass in the object that `aes()` creates:
+
+```{r}
+piechart <- function(data, mapping) {
+  ggplot(data, mapping) +
+    geom_bar(width = 1) + 
+    coord_polar(theta = "y") + 
+    xlab(NULL) + 
+    ylab(NULL)
+}
+```
+
+`...` doesn't need any special treatment. This is often the easiest place to start: 
+
+```{r}
+count <- function(df, ...) {
+  df %>%
+    group_by(...) %>% 
+    summarise(n = n()) %>% 
+    ungroup()
+}
+```
+
+Trying to send `...` to two different places is often a sign you're trying to be too complicated. Create functions like existing ggplot2 and dplyr functions; small components that you join together.
+
+Don't forget about existing `_if` and `_at` functions in dplyr. They'll take care of a lot of details for you.
+
+### Taking variables as inputs
+
+Two options:
+
+* Variable name as string
+* "Unquoted" variable name + embracing
+
+```{r}
+col_summary <- function(df, col) {
+  ggplot(df) + 
+    geom_bar(aes(x = .data[[col]])) + 
+    coord_flip() + 
+    xlab(col)
+}
+col_summary(mtcars, "cyl")
+```
+
+```{r}
+col_summary <- function(df, col) {
+  ggplot(df) + 
+    geom_bar(aes(x = {{ col }})) + 
+    coord_flip()
+}
+col_summary(mtcars, cyl)
+```
+
+Inspired by the very awesome glue package:
+
+```{r}
+name <- "Hadley"
+glue::glue("Hello {name}!")
+```
+
+**Your turn**: Can you explain what's happening in these cases:
+
+```{r}
+col_summary <- function(df, col) {
+  ggplot(df) + 
+    geom_bar(aes(x = col)) + 
+    coord_flip()
+}
+col_summary(mtcars, cyl)
+col_summary(mtcars, "cyl")
+```
+
+(Hint: inserting a `browser()` in the first line might help)
+
+### dplyr
+
+```{r}
+diamonds %>% 
+  group_by(color) %>% 
+  summarise(price = mean(price))
+diamonds %>% 
+  group_by(clarity) %>% 
+  summarise(price = mean(price))
+diamonds %>% 
+  group_by(cut) %>% 
+  summarise(price = mean(price))
+```
+
+Now rather than referring to the column directly, you want to refer to it indirectly - you want to tell `group_by` to group by the varible recorded in `by`, not literally group by the variable called `by`.
+
+```{r}
+mean_price <- function(df, by) {
+  diamonds %>% 
+    group_by(by) %>% 
+    summarise(price = mean(price))
+}
+diamonds %>% mean_price(by = cut)
+```
+
+Fixing this problem requires two steps:
+
+1. Identify that it's a tidyeval problem; i.e. you're trying to refer to
+   a data frame variable that's stored in a function argument; and you're
+   inside the tidyverse
+
+2. Know about embracing `{{ }}`
+
+**Your turn** Reduce the duplication by making a function! 
+
+---
+
+```{r}
+mean_price <- function(df, by) {
+  diamonds %>% 
+    group_by({{ by }}) %>% 
+    summarise(price = mean(price))
+}
+diamonds %>% mean_price(by = cut)
+diamonds %>% mean_price(by = color)
+```
+
+### Select functions
+
+Some functions have "select" semantics - you don't give them operations that work with values, but operations that work with column names:
+
+* `select()`
+* `group_by_at()`
+* most tidyr functions
+
+Slighty different options:
+
+* Variables by you: `select(df, one_of("age", "height"))`
+* Variables as string: `select(df, one_of(vars))`
+* Variables unquoted: `select(df, {{ vars }})`
+
+## The pipe
+
+What if you want to use the pipe in your package? Is it ok?
+
+**Your turn**: 
+* What's the cost of dependending on magrittr?
+* What's the cost of using the pipe?
+
+---
+
+* no dependencies or system dependenices
+* takes max 10s to install
+* package is ~180 kb
+
+* `%>%` makes debugging a little harder
+* not everyone can understand it
+* some performance cost
+
+---
+
+If it works I think you should use it. Most of the packages I work on don't use, because it doesn't help. But some do! (e.g pkgdown)
+
+If you need to use it usethis is your friend: `usethis::use_pipe()`.
+
+
+
+
+## Practice
+
+**Your turn**
+
+```{r}
+df1 %>% group_by(x1) %>% summarise(mean = mean(y1))
+df2 %>% group_by(x2) %>% summarise(mean = mean(y2))
+df3 %>% group_by(x3) %>% summarise(mean = mean(y3))
+df4 %>% group_by(x4) %>% summarise(mean = mean(y4))
+```
+
+----
+
+Create a function that provides a useful visual summary of a 
