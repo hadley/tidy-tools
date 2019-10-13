@@ -1,10 +1,10 @@
 # Tidyverse in packages
 
-Inspired by <https://ggplot2.tidyverse.org/dev/articles/ggplot2-in-packages.html>, thanks to http://github.com/paleolimbot. I'm going to focus on ggplot2, with a dash of dplyr, but the same principles apply to basically any function in the tidyverse.
-
 * How to refer to functions (recap)
 * Tidy evaluation
 * Should you use the pipe?
+
+Inspired by <https://ggplot2.tidyverse.org/dev/articles/ggplot2-in-packages.html>, thanks to [Dewey Dunnington](http://github.com/paleolimbot). I'm going to focus on ggplot2, with a dash of dplyr, but the same principles apply to basically any function in the tidyverse.
 
 ```{r setup}
 library(tidyverse)
@@ -55,21 +55,23 @@ Because ggplot2 isn't designed with this usage in mind, so it's likely to create
 
 What problem does R CMD check uncover? How do you fix it?
 
-## What is tidy eval?
+## Intro to tidy evalation?
+
+### What is it?
 
 **Your turn**
 
-What do these function calls have in common?
+The following function calls use variables `bins`, `diamonds`, `carat`, `price`, `color`, and `clarity`. In this code, they're all used in the same way. But there's really two types here. What are they? What's the difference?
 
 ```{r}
+bins <- 50
 diamonds %>% 
   ggplot(aes(carat, price)) + 
-  geom_hex()
+  geom_hex(bins = bin)
 diamonds %>% 
   group_by(color, clarity) %>% 
   summarise(price = mean(price))
 ```
-
 
 ---
 
@@ -90,7 +92,24 @@ This blurring makes for elegant data analysis code but causes two problems:
 
 Tidy evaluation is implemented by the rlang package, primarily through `enquo()` and `eval_tidy()`. We're not going to talk about the underlying theory today. I think it's beautiful and elegant and wonderful. Instead we're going to focus on the practicalties.
 
-### Using `aes()` in functions
+### `R CMD check`
+
+The first problem you'll encounter when using tidy evaluation in packages is that `R CMD check` reports that the data frame variables you use don't have visible bindings. This is true! But it's not important because `aes()` isn't looking in the environment; `R CMD check` doesn't know that.
+
+* `use_package("~/desktop/tiddlyeval")`
+* `use_mit_license()`
+* `use_r("ggplot")`
+
+```{r}
+#' Diamonds summary
+#' 
+#' @export
+diamonds_summary <- function() {
+  diamonds %>% 
+    dplyr::group_by(color, clarity) %>% 
+    dplyr::summarise(price = mean(price))
+}
+```
 
 ```
 N  checking R code for possible problems (2.7s)
@@ -98,8 +117,6 @@ N  checking R code for possible problems (2.7s)
    Undefined global functions or variables:
      cyl
 ```
-
-The first problem you'll encounter when using tidy evaluation in packages is that `R CMD check` reports that the data frame variables you use don't have visible bindings. This is true! But it's not important because `aes()` isn't looking in the environment; `R CMD check` doesn't know that.
 
 One general way to silence this problem is to use `globalVariables()`:
 
@@ -112,12 +129,14 @@ globalVariables("cyl")
 But for tidyeval there's a slightly better way that clarifies the intent of your code a little:
 
 ```{r}
+#' Diamonds summary
+#' 
+#' @export
 #' @importFrom rlang .data
-#' @importFrom ggplot2 ggplot aes geom_bar coord_flip
-mpg_drv_summary <- function() {
-  ggplot(mtcars) + 
-    geom_bar(aes(.data$cyl)) + 
-    coord_flip()
+diamonds_summary2 <- function() {
+  diamonds %>% 
+    dplyr::group_by(.data$color, .data$clarity) %>% 
+    dplyr::summarise(price = mean(.data$price))
 }
 ```
 
@@ -125,11 +144,23 @@ This removes the ambiguity about whether `cyl` is in the data or the environment
 
 Note that you'll need to `use_package("rlang")` but this doesn't actually increase the dependencies of your package.
 
-## Using tidy eval in your own functions
+---
 
-### Try to avoid it
+**Your turn**: Add this function and get R CMD check passing:
 
-Pass in the object that `aes()` creates:
+```{r}
+#' @export
+#' @importFrom rlang .data
+diamonds_summary2 <- function(bins) {
+  diamonds %>% 
+    ggplot2::ggplot(aes(carat, price)) + 
+    ggplot2::geom_hex(bins = bin)
+}
+```
+
+## What if you want to use it yourself?
+
+First approach is to avoid it. Pass in the object that `aes()` creates:
 
 ```{r}
 piechart <- function(data, mapping) {
@@ -160,50 +191,57 @@ Don't forget about existing `_if` and `_at` functions in dplyr. They'll take car
 
 Two options:
 
-* Variable name as string
-* "Unquoted" variable name + embracing
+*   Variable name as string
+
+    ```{r}
+    col_summary <- function(df, col) {
+      ggplot(df) + 
+        geom_bar(aes(x = .data[[col]])) + 
+        coord_flip() + 
+        xlab(col)
+    }
+    col_summary(mtcars, "cyl")
+    ```
+
+*   "Unquoted" variable name + embracing
+
+    ```{r}
+    col_summary <- function(df, col) {
+      ggplot(df) + 
+        geom_bar(aes(x = {{ col }})) + 
+        coord_flip()
+    }
+    col_summary(mtcars, cyl)
+    ```
+
+    Inspired by the very awesome glue package:
+    
+    ```{r}
+    name <- "Hadley"
+    glue::glue("Hello {name}!")
+    ```
+
+**Your turn**: Generalise these functions:
 
 ```{r}
-col_summary <- function(df, col) {
-  ggplot(df) + 
-    geom_bar(aes(x = .data[[col]])) + 
-    coord_flip() + 
-    xlab(col)
+# data frame
+# any number of groups
+# which variable to summarise
+diamonds_summary2 <- function() {
+  diamonds %>% 
+    dplyr::group_by(.data$color, .data$clarity) %>% 
+    dplyr::summarise(price = mean(.data$price))
 }
-col_summary(mtcars, "cyl")
-```
 
-```{r}
-col_summary <- function(df, col) {
-  ggplot(df) + 
-    geom_bar(aes(x = {{ col }})) + 
-    coord_flip()
+# x and y variables
+diamonds_summary2 <- function(bins) {
+  diamonds %>% 
+    ggplot2::ggplot(aes(carat, price)) + 
+    ggplot2::geom_hex(bins = bin)
 }
-col_summary(mtcars, cyl)
 ```
 
-Inspired by the very awesome glue package:
-
-```{r}
-name <- "Hadley"
-glue::glue("Hello {name}!")
-```
-
-**Your turn**: Can you explain what's happening in these cases:
-
-```{r}
-col_summary <- function(df, col) {
-  ggplot(df) + 
-    geom_bar(aes(x = col)) + 
-    coord_flip()
-}
-col_summary(mtcars, cyl)
-col_summary(mtcars, "cyl")
-```
-
-(Hint: inserting a `browser()` in the first line might help)
-
-### dplyr
+### Reducing duplication
 
 ```{r}
 diamonds %>% 
@@ -284,24 +322,6 @@ What if you want to use the pipe in your package? Is it ok?
 
 ---
 
-If it works I think you should use it. Most of the packages I work on don't use, because it doesn't help. But some do! (e.g pkgdown)
+If it works I think you should use it. Most of the packages I work on don't use it, because it doesn't help. But some do! (e.g pkgdown)
 
 If you need to use it usethis is your friend: `usethis::use_pipe()`.
-
-
-
-
-## Practice
-
-**Your turn**
-
-```{r}
-df1 %>% group_by(x1) %>% summarise(mean = mean(y1))
-df2 %>% group_by(x2) %>% summarise(mean = mean(y2))
-df3 %>% group_by(x3) %>% summarise(mean = mean(y3))
-df4 %>% group_by(x4) %>% summarise(mean = mean(y4))
-```
-
-----
-
-Create a function that provides a useful visual summary of a 
