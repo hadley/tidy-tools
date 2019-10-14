@@ -48,6 +48,9 @@ install <- c(
 
 ```{r, eval = FALSE}
 usethis::create_from_github("hadley/fordogs", fork = FALSE)
+
+# if you see an error about "unsupported protocol", try this:
+usethis::create_from_github("hadley/fordogs", fork = FALSE, protocol = "https")
 ```
 
 
