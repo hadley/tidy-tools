@@ -31,6 +31,7 @@ deps <- unique(sort(renv::dependencies()$Package))
 deps <- setdiff(deps, c(
   "ns", # created during class
   "rmarkdown", "knitr", # only needed for .Rmd
+  "countdown", # only needed for instructor
   "renv", # only needed for this block
   "itdepends", # not on CRAN
   "stats", # recommended
