@@ -30,5 +30,95 @@ f <- function() {
 f()
 ```
 
+*   what is an environment?
+    * collection of bindings between a name (like `x`) and a value (like 1)
+    * data structure that powers scoping
 
+*   how does it differ from a list?
+    
+    ```{r}
+    x1 <- list(a = 1)
+    x2 <- x1
+    x1$a <- 10
+    x2$a
+    
+    library(rlang)
+    y1 <- env(a = 1)
+    y2 <- y1
+    y1$a <- 10
+    y2$a
+    ```
+
+    * every environment has parent
+    * the names in an environment must be unique
+    * lists have an order; environments do not
+    
+    ```{r}
+    x1[[1]]
+    # no "first" element in an environment
+    y1[[1]]
+    ```
+
+*   what's the "default" environment? Global environment
+
+*   how can you see the contents of an environment?
+
+    ```{r}
+    ls(y1)
+    str(y1)
+    
+    env_print(y1)
+    ```
+
+## How does scoping work?
+
+```{r}
+find_var <- function(var, env) {
+  if (identical(env, emptyenv())) {
+    stop("Can't find ", var)
+  } else if (env_has(env, var)) {
+    env_get(env, var)
+  } else {
+    find_var(var, env_parent(env))
+  }
+}
+find_var("x", globalenv())
+find_var("xyz", globalenv())
+find_var("use_r", globalenv())
+
+env_parents(globalenv())
+```
+
+```{r}
+find_env <- function(var, env) {
+  if (identical(env, emptyenv())) {
+    stop("Can't find ", var)
+  } else if (env_has(env, var)) {
+    env
+  } else {
+    find_env(var, env_parent(env))
+  }
+}
+
+find_env("x", globalenv())
+find_env("use_r", globalenv())
+```
+
+```{r}
+find_var("var", get_env(sd))
+find_env("var", get_env(sd)) 
+
+find_var("var", get_env(my_sd))
+find_env("var", get_env(my_sd)) 
+```
+
+**Your turn**: Can you see any patterns here?
+
+```{r}
+library(rlang)
+get_env(ggplot2::geom_point)
+env_parents(get_env(ggplot2::geom_point))
+get_env(dplyr::mutate)
+env_parents(get_env(dplyr::mutate))
+```
 
