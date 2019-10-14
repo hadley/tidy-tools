@@ -150,6 +150,7 @@ lobstr::ref(
       sqrt(var(x, na.rm = TRUE))
     }
     ```
+
 * Document it (just so it doesn't cause an R CMD check problem)
 * Verify you see the same problem I did
 * Fix the problem with 
@@ -160,9 +161,68 @@ lobstr::ref(
     
     Re-document and recheck. 
     Then look at the NAMESPACE file.
+    Then build and install the package, and and look at its namespace environment.
 
 * Challenge: what happens if you import a function from another package,
   say `@importFrom ggplot2 geom_point`?
 
 **Back at 4pm**
+
+
+```{r}
+my_sd <- function(x, na.rm = TRUE) {
+  sqrt(stats::var(x, na.rm = TRUE))
+}
+
+#' @importFrom stats var
+my_sd <- function(x, na.rm = TRUE) {
+  sqrt(var(x, na.rm = TRUE))
+}
+
+# DO NOT USE THIS PLEASE (except when I say it's ok)
+#' @import stats
+my_sd <- function(x, na.rm = TRUE) {
+  sqrt(var(x, na.rm = TRUE))
+}
+
+#' @importFrom magrittr %>%
+```
+
+* base package: don't need to do anything
+* in built-in package: need to import in NAMESPACE
+* in CRAN package: need to import & require in DESCRIPTION
+
+## DESCRIPTION
+
+* `DESCRIPTION` = installing packages
+* `NAMESPACE` = importing _functions_
+
+```{r}
+use_package("ggplot2")
+use_package("ggplot2", "suggest")
+```
+
+Suggested packages:
+
+* optional (not always installed)
+* lower-value or harder to install
+
+* needed only by developers: covr, testthat, knitr, rmarkdown
+* needed for examples: ggplot2movies
+* optional dependences only needed for one or two functions:
+  sf, quantreg, hexbin
+  
+## When to take a dependency?
+
+**Your turn**: What are the advantages to using code from another package? What the disadvantages?
+
+Pros:
+*
+*
+
+Cons:
+*
+*
+
+
 
