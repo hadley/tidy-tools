@@ -35,6 +35,7 @@ deps <- setdiff(deps, c(
   "renv", # only needed for this block
   "itdepends", # not on CRAN
   "stats", # recommended
+  "MASS", # recommended
   tidyverse::tidyverse_packages(),
   NULL
 ))

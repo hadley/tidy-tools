@@ -23,7 +23,7 @@ Slides:
 
 ``` r
 install.packages(c("tidyverse", "devtools"))
-install.packages(c("fs", "glue", "lobstr", "MASS", "rematch2", "sloop", "vctrs"))
+install.packages(c("fs", "glue", "lobstr", "rematch2", "sloop", "vctrs"))
 devtools::install_github("r-lib/itdepends")
 ```
 
