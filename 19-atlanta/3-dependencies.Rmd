@@ -1,0 +1,34 @@
+```{r}
+sd
+
+var <- function(x, na.rm = TRUE) 100
+
+sd(1:10)
+
+my_sd <- function(x, na.rm = TRUE) {
+  sqrt(var(x, na.rm = TRUE))
+}
+my_sd(1:10)
+```
+
+
+## Warm ups
+
+What will this function return?
+
+```{r}
+x <- 1
+f <- function() {
+  y <- 2
+  z <- 2
+  g <- function() {
+    z <- 3
+    c(x, y, z)
+  }
+  g()
+}
+f()
+```
+
+
+
