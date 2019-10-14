@@ -5,9 +5,9 @@
 
 <http://principles.tidyverse.org/>
 
-Goal for today is focus on the interface of functions, because I think this is an important change in mindset when you start developing functions. You have to think how they fit together into a great whole.
+Goal for today is focus on the interface of functions, because I think this is an important change in mindset when you start developing functions. You have to think how they fit together into a greater whole.
 
-**Your turn**: What are the properties of a function that define its interface?
+**Your turn**: What are the properties of a function that define its interface? (There are at least 9!)
 
 ```{r}
 countdown::countdown_fullscreen(3)
@@ -29,12 +29,12 @@ countdown::countdown_fullscreen(3)
 
 (mostly). As motivated by base string functions vs. stringr function. 
 
-Emphasis that I don't think string functions in base R are bad or wrong. But they grew organically over multiple years, and I think we can do better with some systematic anaylsis. Similarly, stringr functions aren't perfect, and there are definitely mistakes. Really important to critique existing work in order to get better. (And base string function have a good collection of problems)
+NB: I don't think string functions in base R are bad or wrong. But they grew organically over multiple years, and I think we can do better with some systematic anaylsis. Similarly, stringr functions aren't perfect, and there are definitely mistakes. Really important to critique existing work in order to get better. (And base string function have a good collection of problems)
 
 > "Each [function] is perfect the way it is .... and it can use a little improvement."
 > --- Shunryu Suzuki
 
-**Your turn**: What are some of the challenges of the base string functions?
+**Your turn**: What are some of the challenges of the base string functions? Think particularly about names, arguments, and outputs.
 
 ```{r, eval = FALSE}
 strsplit(x, split, ...)
@@ -61,12 +61,12 @@ nchar(x, type, ...)
   * Not always independent.
 
 * Outputs:
-  * Can’t feed output of gregexpr() into substr()
+  * Can’t feed output of `gregexpr()` into `substr()`
 
 * Errors?
 * Side-effects?
 
-## Function names
+## Names
 
 > "A rose by any other name would smell as sweet."
 > --- Shakespeare
@@ -92,14 +92,20 @@ gsub(pattern, replacement, x, ...)
 
 ---
 
-Verbs aren't always essential, and nouns can work when you're building up objects
+Verbs aren't always essential; nouns can work when you're building up objects
 
-```{r}
+```{r, eval = FALSE}
 library(ggplot2)
 
 geom_line()
 scale_x_continuous()
 coord_fixed()
+```
+
+Or extracting properties:
+
+```{r, eval = FALSE}
+str_length()
 ```
 
 And sometimes there isn't a good verb:
@@ -117,13 +123,16 @@ str_to_upper()
 
 * Use prefixes to group together related functions. 
   Main advantage is autocomplete. 
-  Shiny is a counter example
+  Shiny is a counter example.
+  Not necessary to have common prefix for every function in package.
 
 * Use suffixes for variations on a theme.
     * `str_replace()` and `str_replace_all()`
     * `str_split()` and `str_split_fixed()`
 
 **Your turn**: What stringr (and other tidyverse) functions don't use these principles?
+
+---
 
 ```{r, eval = FALSE}
 # Don't start with str_
@@ -135,11 +144,12 @@ regexp()
 # Aren't verbs
 str_which()
 str_c()
-str_length()
 str_sub()
 ```
 
 ## Arguments
+
+Outline topics coming up.
 
 ### Names
 
@@ -151,12 +161,12 @@ gregexpr(pattern, text, fixed = TRUE)
 ```
 
 ```{r}
-install.packages(Ncpus=, configure.vars =, keep_outputs=, INSTALL_opts=, contriburl=)
+install.packages(contriburl=, configure.vars =, keep_outputs=, Ncpus=, cacheOK =, INSTALL_opts=, )
 ```
 
 ### Types
 
-**Your turn**: Can divide the following into functional groups?
+**Your turn**: Can divide the following arguments into function groups? To get started, I think `x` and `text` form one group.
 
 ```{r}
 strsplit(x, split, fixed = TRUE)
