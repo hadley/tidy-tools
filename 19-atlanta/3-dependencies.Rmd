@@ -122,3 +122,47 @@ get_env(dplyr::mutate)
 env_parents(get_env(dplyr::mutate))
 ```
 
+
+```{r}
+dplyr::top_n
+
+find_env("enquo", get_env(dplyr::top_n))
+
+ggplot2::geom_point %>% 
+  get_env() %>% 
+  env_parent() %>% 
+  env_print()
+
+lobstr::ref(
+  rlang::enquo,
+  find_var("enquo", get_env(dplyr::top_n))
+)
+```
+
+## Namespaces
+
+* `create_package("~/desktop/testns")`
+* `use_mit_license()`
+* `use_r("mysd")`
+
+    ```{r}
+    my_sd <- function(x, na.rm = TRUE) {
+      sqrt(var(x, na.rm = TRUE))
+    }
+    ```
+* Document it (just so it doesn't cause an R CMD check problem)
+* Verify you see the same problem I did
+* Fix the problem with 
+
+    ```
+    #' @importFrom stats var
+    ```
+    
+    Re-document and recheck. 
+    Then look at the NAMESPACE file.
+
+* Challenge: what happens if you import a function from another package,
+  say `@importFrom ggplot2 geom_point`?
+
+**Back at 4pm**
+
