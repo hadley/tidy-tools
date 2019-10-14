@@ -7,11 +7,11 @@
 
 <!-- badges: end -->
 
-Notes and live code a 2-day workshop on “tidy tools”. This workshop is
-(mostly) coded live. You can see the scripts I work from in
-[`script/`](script/), but I recommending not reading too far ahead
-because you’ll find answers to some of the exercises, and you’ll learn
-more if you try to work through them first.
+Notes and live code for a 2-day workshop on “tidy tools”. This workshop
+is (mostly) coded live. You can see the scripts I work from in
+[`script/`](script/), but I recommend not reading too far ahead because
+you’ll find answers to some of the exercises, and you’ll learn more if
+you try to work through them first.
 
 Slides:
 
