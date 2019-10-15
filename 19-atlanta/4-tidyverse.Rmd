@@ -1,0 +1,36 @@
+# Tidyverse packages
+```{r}
+library(ggplot2)
+library(dplyr)
+
+# cyl_plot()
+ggplot(mtcars) + 
+  geom_bar(aes(cyl)) + 
+  coord_flip()
+
+# cyl_sum()
+mtcars %>% 
+  group_by(cyl) %>% 
+  summarise(n = n(), mpg = mean(mpg))
+```
+
+* `create_package("~/desktop/tidytest")`
+* `use_mit_license()` / `use_gpl3_license()`
+* make two functions: `cyl_plot()` and `cyl_summary()`
+* make it work - remember dependency stuff (`use_something()`, and `::`)
+* get check passing as cleanly as you can
+* GREEN post it when done; PINK post it for problems
+
+---
+
+* Remove calls to `library()`, and instead call `use_package()` once
+* Use `::` or `@importFrom` to access the functions
+* `@importFrom magrittr %>%` to access the pipe
+* For data-variables we switch from `cyl` to `.data$cyl`
+  and added `@importFrom rlang .data`
+
+---
+
+* Tidyverse is nice to use because it blurs data-variables and environment-variables 
+* `{{ x }}` means looks for data-variable in env-variable `x` that allows you to easily use tidyeval inside a function
+* Also `...` just works
