@@ -217,12 +217,63 @@ Suggested packages:
 **Your turn**: What are the advantages to using code from another package? What the disadvantages?
 
 Pros:
-*
-*
+* convenient - you don't have to write the code
+* consistent/correct
+* tested & documented
+* faster code (if in C/C++)
+* bug fixes for free
 
 Cons:
-*
-*
+* download size
+* installation slower & harder 
+* someone else in control - might change without warning
+* malicious
+* licensing problems
 
+```{r}
+itdepends::dep_weight(c("glue", "dplyr"))
+```
+
+Other considerations:
+* marginal cost - if someone already has tidyverse, dplyr is free
+* you're actually a dependency on a person/team
+
+* High-cost, high-value: suck it up
+* High-cost, low-value: Put it in suggests; implement it yourself
+* Low-cost, high-value: thumbs up!
+* Low-cost, low-value: doesn't really matter
+
+## Case studies
+
+### dplyr 
+
+Two functions need `filter()` and `mutate()`. Should you:
+
+(a) `use_package("tidyverse")`
+(b) `use_package("dplyr")`
+(c) Use `$` instead
+
+```{r}
+library(dplyr)
+
+df <- data.frame(x = c(4:6, NA))
+filter(df, x > 5)
+
+df[!is.na(df$x) & df$x > 5, , drop = FALSE]
+```
+
+
+### Matching string problem
+
+```{r}
+dates <- c("2016-01-02", "2019-03-05", "not a date")
+re <- "(\\d{4})-(\\d{2})-(\\d{2})"
+stringr::str_match(dates, re)
+
+regmatches(dates, regexec(re, dates))
+
+rematch2::re_match(dates, re)
+
+```
 
 
