@@ -102,6 +102,166 @@ str_capitalise(x, to = "title")
 str_capitalise(x, to = "sentence")
 ```
 
-# Back at 11:20am
+### Order
 
+**Your turn**: Can you divide these arguments up into functional groups?
+
+* data: `x` and `text`: required, vectors, primary input
+
+* descriptors: `split`/`pattern`, `replacement`, `start`, `stop`: required, but not the data
+
+* details: `fixed`, `ignore.case`, `perl`, optional/defaults, affect the details of result, single values (not vectorised)
+
+```{r}
+strsplit(x, split, fixed = TRUE)
+grepl(pattern, x, fixed = TRUE, ignore.case = TRUE)
+gsub(pattern, replacement, x, fixed = TRUE, ignore.case = TRUE)
+gregexpr(pattern, text, fixed = TRUE)
+substr(x, start, stop)
+```
+
+* data - use with pipe, never name this argument
+  `mean(x = 1:10)` `mean(1:10)`
+  `left_join(x, y)`, `lm(y ~ x, data = df)`
+
+* descriptors - 2-3, usually not named 
+  `str_replace(x, "pattern", "replacement")`
+
+* dots (...) (if you're using them)
+
+* details
+  `mean(1:10, , TRUE)`
+
+### Names
+
+```{r}
+x %>% 
+  grepl("pattern", .)
+```
+
+
+* Use a consistent naming scheme
+* Nouns
+* err on side of being descriptive and long
+
+### Required arguments
+
+**Your turn**: in these functions, which arguments are optional? which are required?
+
+```{r}
+y <- 1:5
+x <- rnorm(5)
+lm(y ~ x)
+
+sample(1:5)
+
+diag(1:10)
+diag(nrow = 1)
+diag(nrow = 1, ncol = 2)
+
+str_sub()
+str_replace_all()
+
+str_replace_all("abc", c(a = "X", b = "Y"))
+
+```
+
+General rule: no default = reqiured. Has default = optional. Never use `missing()`
+
+```{r}
+x <- c("bbaaab", "bbb", "bbaaba")
+loc <- regexpr("a+", x)
+str(loc)
+
+substr(x, loc, loc + attr(loc, "match.length") - 1)
+substr(x[[2]], -1, -3)
+
+loc <- str_locate(x, "a+")
+str_sub(x, loc[, 1], loc[, 2])
+
+str_sub(x, str_locate(x, "a+"))
+str_extract(x, "a+")
+
+str_replace_all(x, "a+", str_to_upper)
+```
+
+### Hidden
+
+**Your turn**: when do these functions return different results?
+
+```{r}
+data.frame(x = "abc")
+tolower("I")
+sort(letters)
+
+
+```
+
+```{r}
+data.frame(x = "abc")
+options(stringsAsFactors = FALSE)
+data.frame(x = "abc")
+
+tolower("I")
+str_to_lower("I", "tr")
+
+geom_point(stat = "identity")
+"identity" -> StatIdentity
+str_to_upper("i", locale = "tr")
+
+toupper()
+
+str_sort(c("a", "o", "z", "å", "ø"))
+str_sort(c("a", "o", "z", "å", "ø"), locale = "se")
+
+Sys.time()
+```
+
+## Output
+
+`str_sub(x, start, end)`:
+
+* is always a character vector
+* `length()` is always the same as `max(length(x), length(start), length(end))`
+
+```{r}
+x <- str_sub(c("xy", "x2", "21"), 1, 1)
+str_sub("Hadley", 1:5, -1)
+str_sub(c("Hadley", "Jenny"), 1:5, -1)
+```
+
+`str_detect(x, pattern)`:
+
+* logical vector
+* `length(str_detect(x))` equals `length(x)`
+
+**Your turn** What invariants do `grep()` and `str_which()` have?
+
+`grep()`
+* integer or double or character 
+* `length(grep(x))` <= `length(x)`
+
+`str_which()`
+* integer vector
+* 
+
+`str_which()`:
+
+
+**Your turn**: Are these consistent? What do these results say about the invariants?  
+
+Back at 1:30pm
+
+```{r}
+x <- c(NA, "", "x", "y")
+str_match(x, "(y)")
+str_match_all(x, "(y)")
+str_extract(x, "y")
+str_extract_all(x, "y")
+str_locate(x, "y")
+str_locate_all(x, "y")
+
+str_split(x, "x")
+str_split_fixed(x, "x", 2)
+```
 
