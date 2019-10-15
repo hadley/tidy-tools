@@ -1,0 +1,107 @@
+* implementation vs interface
+* inside vs outside 
+
+**Your turn**: What are the properties of a function that determine its interface? (There are at least 9)
+
+* Name
+* Arguments
+  * Names / number
+  * `...`
+  * Order
+  * Types (integer, character, data frames ...)
+    (Valid values)
+  * Default 
+  * Does it use tidy evaluation?
+* Output (type)
+* Side-effects
+  * Throwing an error
+  * Prints to console (e.g. progress bar)
+  * Plot, save to disk, ...
+
+?grepl
+
+**Your turn**: What are some the problems here?
+
+```{r}
+strsplit(x, split, ...)
+grep(pattern, x, value = FALSE, ...)
+grepl(pattern, x, ...)
+sub(pattern, replacement, x, ...)
+gsub(pattern, replacement, x, ...)
+regexpr(pattern, text, ...)
+gregexpr(pattern, text, ...)
+regexec(pattern, text, ...)
+substr(x, start, stop)
+nchar(x, type, ...)
+```
+
+* Names
+  * based on unix command line tool names
+  * who is Greg?
+  * some pattern, but not clear? 
+    * g = global for gsub, gregexp, but not grep or grepl
+  * very concise
+  * how do you talk about them?
+  
+* Arguments
+  * order is weird
+    * data only comes first in strsplit
+  * `x` vs `text`
+
+* Outputs
+  * `grep()` depending on the arguments - `value = FASLE` gives positions, `value = TRUE` gives values
+  * `regexpr()` can not easily combine with `substr()`
+  * `strsplit()` returns a list, even if there are the same number of pieces in every group
+
+* Other
+  * important missing functions
+
+## Names
+
+**Your turn**: what are the stringr equivalents of these function?
+
+```{r}
+strsplit()  # -> str_split()
+grep()      # -> str_which() / str_subset()
+grepl()     # -> str_detect()
+sub()       # -> str_replace()
+gsub()      # -> str_replace_all()
+```
+```
+str_detect() - str_something_lgl()
+str_which()  - str_something_int()
+str_subset() - str_something_chr()
+
+str_locate_vec()
+str_locate_str()
+
+str_to_lower() - str_whisper()
+str_to_upper() - str_yell()
+```
+
+**Your turn**  What stringr functions don't obey these principles? What other tidyverse functions are bad examples?
+
+```{r}
+invert_match() # match_invert()
+case
+str_detect(words, fixed(".x."))
+str_length()
+word()
+str_c()
+```
+
+```{r}
+str_to_upper()
+str_to_lower()
+str_to_title()
+str_to_sentence()
+
+str_capitalise(x, to = "upper")
+str_capitalise(x, to = "lower")
+str_capitalise(x, to = "title")
+str_capitalise(x, to = "sentence")
+```
+
+# Back at 11:20am
+
+
