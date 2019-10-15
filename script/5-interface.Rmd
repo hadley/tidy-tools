@@ -264,6 +264,8 @@ str_sort(c("a", "o", "z", "å", "ø"))
 str_sort(c("a", "o", "z", "å", "ø"), locale = "se")
 ```
 
+<https://www.vice.com/en_us/article/zmjwda/a-code-glitch-may-have-caused-errors-in-more-than-100-published-studies>
+
 ---
 
 Obviously bad; generally either straightforward to avoid or you don't know about them. Mostly related to locale.

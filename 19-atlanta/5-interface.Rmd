@@ -217,6 +217,8 @@ str_sort(c("a", "o", "z", "å", "ø"), locale = "se")
 Sys.time()
 ```
 
+<https://www.vice.com/en_us/article/zmjwda/a-code-glitch-may-have-caused-errors-in-more-than-100-published-studies>
+
 ## Output
 
 `str_sub(x, start, end)`:
@@ -253,15 +255,25 @@ str_sub(c("Hadley", "Jenny"), 1:5, -1)
 Back at 1:30pm
 
 ```{r}
-x <- c(NA, "", "x", "y")
-str_match(x, "(y)")
-str_match_all(x, "(y)")
+x <- c(NA, "", "x", "y", "yy")
+
+# character(), length(x)
 str_extract(x, "y")
-str_extract_all(x, "y")
+str_extract(x, "y*")
+
+# list(), length(x)
+# character vector, length is number of matches
+str(str_extract_all(x, "y"))
+
 str_locate(x, "y")
+str_locate(x, "y*")
+# [)
 str_locate_all(x, "y")
 
+str_match_all(x, "(y)")
+
 str_split(x, "x")
+str_match(x, "(y)")
 str_split_fixed(x, "x", 2)
 ```
 

@@ -1,0 +1,200 @@
+# Types
+
+```{r}
+y <- sum(x)
+```
+
+**Your turn**: What can you tell me about x and y? (assuming this code runs)
+
+* `x`: a logical, numeric (integer/double)
+* `y`: numeric, length 1
+
+`sum(c(x, y))` equals `sum(x)` + `sum(y)`
+`sum(c(numeric(), 5))` equals `sum(numeric())` + `sum(5)`
+`5` equals = 0 + 5
+
+**Your turn**: What can you tell me about x and y? (assuming this code runs)
+
+```{r}
+y <- sapply(x, f)
+```
+
+* `x`: vector (logical, numeric, character, list)
+* `y`: ???
+
+```{r}
+y <- vapply(x, f, numeric(1))
+```
+
+* `x`: vector
+* `y`: numeric vector of length `length(x)`
+
+```{r}
+y <- map_dbl(x, f)
+```
+
+### Vector types
+
+**Your turn**: Eight important vector types in base R: What are they?
+
+* logical
+* numeric (integer & double)
+* character
+* factors (ordered)
+* lists
+* dates (Date)
+* date-times (POSIXct)
+* duration (difftime)
+
+* matrices
+* complex
+* expression
+
+**Your turn**: What is the type of these functions?
+
+* `sum()`: logical | numeric -> numeric[1]
+
+* `mean()`: logical | numeric -> numeric[1]; date | date-time -> date-time[1]
+
+* `dplyr::first()` vector -> same type of vector [1]
+
+* `paste()` (with collapse argument set): vector -> character [1]
+
+* `sqrt()` logical, numeric -> numeric; output same length as input
+
+* `pmin()`: both the same type -> that type back; different types are complicated (`pmin()` and `<` and `min()` and `order()` (`sort()`) should be consistent, `median()`?)
+
+Challenge: what about the sizes?
+
+```{r}
+1:3 + 1
+1:4 + 1:2
+1:4 + 1:3
+
+data.frame(x = 1:4, y = 1:3)
+pmin(1:3, 1:2)
+cbind(1:3, 1:2)
+1:3 + 1:2
+
+dplyr::mutate(data.frame(x = 1:3), y = 1)
+dplyr::mutate(data.frame(x = 1:3), y = 1:2)
+
+filter(df, x > 1)
+```
+
+```{r}
+col_mean <- function(df) {
+  num <- sapply(df, is.numeric)
+  sapply(df[, num], mean)
+}
+
+col_mean(mtcars)
+col_mean(iris)
+
+col_mean(mean)
+col_mean(1:10)
+
+col_mean(data.frame(x = 1:10))
+col_mean(data.frame(x = "a"))
+
+
+col_mean2 <- function(df) {
+  num <- vapply(df, is.numeric, logical(1))
+  vapply(df[, num, drop = FALSE], mean, numeric(1))
+}
+
+col_mean2(mean)
+col_mean2(1:10)
+
+col_mean2(data.frame(x = 1:10))
+col_mean2(data.frame(x = "a"))
+```
+
+## vctrs
+
+```{r}
+library(vctrs)
+
+vec_ptype(letters)
+vec_ptype(Sys.Date())
+```
+```{r}
+vec_ptype_show(letters)
+vec_ptype_show(Sys.Date())
+
+letters[0]
+
+f <- factor(c("a", "a", "b"))
+f
+vec_ptype(f)
+
+vec_ptype_show(Sys.time())
+
+now <- Sys.time()
+vec_ptype_show(now)
+vec_ptype_show(now - (now + 3600 * 100))
+```
+
+**your turn**: What is the prototype of a data frame?
+
+```{r}
+str(vec_ptype(mtcars))
+str(mtcars[0, ])
+
+vec_ptype_show(iris)
+```
+
+```{r}
+vec_ptype_show(vec_rbind(
+  tibble(x = 1, y = factor("a")),
+  tibble(x = 2, y = factor("b"))
+))
+```
+
+## S3 vector
+
+* logical
+* numeric (integer & double)
+* character
+* lists
+
+* factors (ordered)
+* dates (Date)
+* date-times (POSIXct)
+* duration (difftime)
+
+```{r}
+f <- factor("x")
+typeof(f)
+attributes(f)
+
+```
+**Your turn** Determine the underlying base type and the attributes for dates and date-times
+
+```{r}
+typeof(Sys.Date())
+attributes(Sys.Date())
+
+typeof(Sys.time())
+attributes(lubridate::now())
+```
+
+```{r}
+vec_data(Sys.Date())
+Sys.Date() + 2
+vec_data(Sys.Date() + 2)
+new_date(5000)
+
+vec_data(Sys.time())
+new_datetime(0, tz = "UTC")
+```
+
+```{r}
+f <- factor(letters)
+f
+class(f)
+class(f) <- "Date"
+f
+```
+
+## Back at 3:30pm
