@@ -198,3 +198,156 @@ f
 ```
 
 ## Back at 3:30pm
+
+## Generics
+
+```{r}
+library(sloop)
+ftype(mean)
+ftype(sum)
+
+s3_dispatch(print(ordered(1:3)))
+s3_get_method(print.factor)
+
+ftype(mean)
+s3_dispatch(mean(Sys.Date()))
+s3_get_method(mean.Date)
+```
+
+We're focussing on vectors - 
+
+```{r}
+mod <- lm(mpg ~ disp, data = mtcars)
+typeof(mod)
+attributes(mod)
+str(mod)
+
+s3_dispatch(print(mod))
+s3_get_method(print.lm)
+
+length(mod)
+data.frame(x = 1:12, mod = mod)
+tibble(x = 1:12, mod = mod) # bad tibble
+```
+
+### Creating a new generic
+
+`bizarro()`: 
+* `vec_ptype(bizarro(x))` equal `vec_ptype(x)`
+* `length(bizarro(x))` equals `length(x)`
+* `bizarro(bizzaro(x))` equals `x`
+
+```{r}
+bizarro("abc")
+#> cba
+
+bizarro(1)
+#> -1
+
+bizarro(c(TRUE, FALSE))
+#> FALSE TRUE
+```
+
+```{r}
+bizarro <- function(x) {
+  if (is.character(x)) {
+    str_reverse(x)
+  } else if (is.numeric(x)) {
+    -x
+  } else if (is.logical(x)) {
+    !x
+  } else {
+    stop("Don't know how to bizarro a ", class(x)[[1]])
+  }
+}
+```
+
+
+### Generics and types
+
+```{r}
+mean2 <- function(x, na.rm = TRUE) {
+  UseMethod("mean2")
+}
+```
+
+Invariants of mean:
+* output is always of length 1
+
+**Your turn** What type of output should you get? (maybe it shouldn't allowed, and you should error)
+
+  logical   -> numeric
+  numeric   -> numeric
+  date      -> date-time (hint: convert to a date time)
+  date-time -> date-time
+  duration  -> duration
+  list      -> error
+  character -> error
+  factor    -> error
+  ordered   -> error
+  ??? ->       error
+  
+**Your turn**: Make a mean2 generic and implement as many methods as you can in 10 minutes.
+
+```{r}
+mean.numeric <- function(x, ..., na.rm = TRUE) {
+  
+}
+
+weighted.mean(c(1, 10), wt = c(10, 0))
+weighted.mean(c(1, 10), w = c(10, 0))
+```
+
+## Motivation
+
+WAT
+
+```{r}
+f1 <- factor("a")
+f2 <- factor("b")
+c(f1, f2)
+vec_c(f1, f2)
+
+today <- as.Date("2019-10-15")
+lunch <- as.POSIXct("2019-10-15 12:30")
+c(today, lunch)
+c(lunch, today)
+
+vec_data(c(today, lunch))
+vec_data(today)
+vec_data(lunch)
+
+# vec_ptype(vec_c(x, y)) equal vec_ptype(vec_c(y, x))
+vec_c(today, lunch)
+vec_c(lunch, today)
+
+lunch_nz <- as.POSIXct("2019-10-15 12:30", tz = "Pacific/Auckland")
+lunch
+attributes(lunch)
+vec_c(lunch, lunch_nz)
+vec_c(lunch_nz, lunch)
+
+lunch_nz
+attributes(c(lunch_nz))
+
+c(lunch_nz, f1)
+c(f1, lunch_nz)
+vec_c(f1, lunch_nz)
+
+```
+
+
+
+
+```{r}
+d1 <- new_duration(10, "sec")
+vec_data(d1)
+d2 <- new_duration(10, "hours")
+vec_data(d2)
+
+mean(c(d1, d2))
+```
+
+
+
+<https://bit.ly/2Ml2h8x>
