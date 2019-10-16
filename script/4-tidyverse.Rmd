@@ -6,54 +6,41 @@
 
 Inspired by <https://ggplot2.tidyverse.org/dev/articles/ggplot2-in-packages.html>, thanks to [Dewey Dunnington](http://github.com/paleolimbot). I'm going to focus on ggplot2, with a dash of dplyr, but the same principles apply to basically any function in the tidyverse.
 
-```{r setup}
-library(tidyverse)
-```
+**Your turn**: Turn this code in to package. Use what you learned yesterday to get as much as possible of R CMD check to work.
 
-## Referring to functions
-
-To recap: I think you should start with this:
+<!-- Need to figure out what to do about mtcars -->
 
 ```{r}
-mtcars_summary <- function() {
-  ggplot2::ggplot(mtcars) + 
-    ggplot2::geom_bar(ggplot2::aes(cyl)) + 
-    ggplot2::coord_flip()
-}
+library(ggplot2)
+library(dplyr)
+
+# cyl_plot()
+ggplot(mtcars) + 
+  geom_bar(aes(cyl)) + 
+  coord_flip()
+
+# cyl_sum()
+mtcars %>% 
+  group_by(cyl) %>% 
+  summarise(n = n(), mpg = mean(mpg))
 ```
 
-And only change to:
+* `create_package("~/desktop/tidytest")`
+* `use_mit_license()` / `use_gpl3_license()`
+* make two functions: `cyl_plot()` and `cyl_summary()`
+* make it work - remember dependency stuff (`use_something()`, and `::`)
+* get check passing as cleanly as you can
+* GREEN post it when done; PINK post it for problems
 
-```{r}
-#' @importFrom ggplot2 ggplot aes geom_bar coord_flip
-mpg_drv_summary <- function() {
-  ggplot(mtcars) + 
-    geom_bar(aes(cyl)) + 
-    coord_flip()
-}
-```
+---
 
-**NEVER DO THIS**:
-
-```{r}
-#' @import ggplot2
-mpg_drv_summary <- function() {
-  ggplot(mtcars) + 
-    geom_bar(aes(cyl)) + 
-    coord_flip()
-}
-```
-
-Because ggplot2 isn't designed with this usage in mind, so it's likely to create conflicts in the future)
-
-**Your turn**: put the above function in a package and check it:
-
-* `usethis::create_package("ggplot2test")`
-* `usethis::use_mit_license()`
-* `usethis::use_r("summary")`
-* `devtools::check()`
-
-What problem does R CMD check uncover? How do you fix it?
+* Remove calls to `library()`, and instead call `use_package()` once
+* Use `::` or `@importFrom` to access the functions
+* `@importFrom magrittr %>%` to access the pipe
+* For data-variables we switch from `cyl` to `.data$cyl`
+  and added `@importFrom rlang .data`
+* Using rlang and magrittr increase the explicit dependencies, but don't change the implicit dependencies.
+---
 
 ## Intro to tidy evalation?
 
@@ -75,7 +62,7 @@ diamonds %>%
 
 ---
 
-At its heart tidyeval blurs the line between variables in an environment and variables in a data frame. These are deceptively similar because we use the same word for them. One reason that tidy eval is hard is that you have to start to separate these two concepts in your brain (and the point of the tidyverse is so that you don't have to).
+At its heart tidyeval blurs the line between variables in an environment (env-variable) and variables (data-variables) in a data frame. These are deceptively similar because we use the same word for them. One reason that tidy eval is hard is that you have to start to separate these two concepts in your brain (and the point of the tidyverse is so that you don't have to).
 
 ```{r}
 a <- 1
@@ -91,60 +78,6 @@ This blurring makes for elegant data analysis code but causes two problems:
 * It's hard to use indirection; i.e. storing a df-var in an env-var
 
 Tidy evaluation is implemented by the rlang package, primarily through `enquo()` and `eval_tidy()`. We're not going to talk about the underlying theory today. I think it's beautiful and elegant and wonderful. Instead we're going to focus on the practicalties.
-
-### `R CMD check`
-
-The first problem you'll encounter when using tidy evaluation in packages is that `R CMD check` reports that the data frame variables you use don't have visible bindings. This is true! But it's not important because `aes()` isn't looking in the environment; `R CMD check` doesn't know that.
-
-* `use_package("~/desktop/tiddlyeval")`
-* `use_mit_license()`
-* `use_r("ggplot")`
-
-```{r}
-#' Diamonds summary
-#' 
-#' @export
-diamonds_summary <- function() {
-  diamonds %>% 
-    dplyr::group_by(color, clarity) %>% 
-    dplyr::summarise(price = mean(price))
-}
-```
-
-```
-N  checking R code for possible problems (2.7s)
-   mpg_drv_summary: no visible binding for global variable ‘cyl’
-   Undefined global functions or variables:
-     cyl
-```
-
-One general way to silence this problem is to use `globalVariables()`:
-
-```{r}
-globalVariables("cyl")
-```
-
-<https://stackoverflow.com/questions/9439256>
-
-But for tidyeval there's a slightly better way that clarifies the intent of your code a little:
-
-```{r}
-#' Diamonds summary
-#' 
-#' @export
-#' @importFrom rlang .data
-diamonds_summary2 <- function() {
-  diamonds %>% 
-    dplyr::group_by(.data$color, .data$clarity) %>% 
-    dplyr::summarise(price = mean(.data$price))
-}
-```
-
-This removes the ambiguity about whether `cyl` is in the data or the environment. It only works in functions that use tidy evaluation.
-
-Note that you'll need to `use_package("rlang")` but this doesn't actually increase the dependencies of your package.
-
----
 
 **Your turn**: Add this function and get R CMD check passing:
 
@@ -189,104 +122,35 @@ Don't forget about existing `_if` and `_at` functions in dplyr. They'll take car
 
 ### Taking variables as inputs
 
-Two options:
-
-*   Variable name as string
-
-    ```{r}
-    col_summary <- function(df, col) {
-      ggplot(df) + 
-        geom_bar(aes(x = .data[[col]])) + 
-        coord_flip() + 
-        xlab(col)
-    }
-    col_summary(mtcars, "cyl")
-    ```
-
-*   "Unquoted" variable name + embracing
-
-    ```{r}
-    col_summary <- function(df, col) {
-      ggplot(df) + 
-        geom_bar(aes(x = {{ col }})) + 
-        coord_flip()
-    }
-    col_summary(mtcars, cyl)
-    ```
-
-    Inspired by the very awesome glue package:
-    
-    ```{r}
-    name <- "Hadley"
-    glue::glue("Hello {name}!")
-    ```
-
-**Your turn**: Generalise these functions:
-
 ```{r}
-# data frame
-# any number of groups
-# which variable to summarise
-diamonds_summary2 <- function() {
-  diamonds %>% 
-    dplyr::group_by(.data$color, .data$clarity) %>% 
-    dplyr::summarise(price = mean(.data$price))
+col_summary <- function(df, col) {
+  ggplot(df) + 
+    geom_bar(aes(x = col)) + 
+    coord_flip()
 }
-
-# x and y variables
-diamonds_summary2 <- function(bins) {
-  diamonds %>% 
-    ggplot2::ggplot(aes(carat, price)) + 
-    ggplot2::geom_hex(bins = bin)
-}
+col_summary(mtcars, cyl)
 ```
 
-### Reducing duplication
+Need to tell `geom_bar()` that env-variable `col` contains a df-variable: do that with embracing.
 
 ```{r}
-diamonds %>% 
-  group_by(color) %>% 
-  summarise(price = mean(price))
-diamonds %>% 
-  group_by(clarity) %>% 
-  summarise(price = mean(price))
-diamonds %>% 
-  group_by(cut) %>% 
-  summarise(price = mean(price))
-```
-
-Now rather than referring to the column directly, you want to refer to it indirectly - you want to tell `group_by` to group by the varible recorded in `by`, not literally group by the variable called `by`.
-
-```{r}
-mean_price <- function(df, by) {
-  diamonds %>% 
-    group_by(by) %>% 
-    summarise(price = mean(price))
+col_summary <- function(df, col) {
+  ggplot(df) + 
+    geom_bar(aes(x = {{ col }})) + 
+    coord_flip()
 }
-diamonds %>% mean_price(by = cut)
+col_summary(mtcars, cyl)
 ```
 
-Fixing this problem requires two steps:
-
-1. Identify that it's a tidyeval problem; i.e. you're trying to refer to
-   a data frame variable that's stored in a function argument; and you're
-   inside the tidyverse
-
-2. Know about embracing `{{ }}`
-
-**Your turn** Reduce the duplication by making a function! 
-
----
+Inspired by the very awesome glue package:
 
 ```{r}
-mean_price <- function(df, by) {
-  diamonds %>% 
-    group_by({{ by }}) %>% 
-    summarise(price = mean(price))
-}
-diamonds %>% mean_price(by = cut)
-diamonds %>% mean_price(by = color)
+name <- "Hadley"
+glue::glue("Hello {name}!")
 ```
+
+* `{` = interpolate string
+* `{{` = interpolate code
 
 ### Select functions
 
@@ -323,5 +187,3 @@ What if you want to use the pipe in your package? Is it ok?
 ---
 
 If it works I think you should use it. Most of the packages I work on don't use it, because it doesn't help. But some do! (e.g pkgdown)
-
-If you need to use it usethis is your friend: `usethis::use_pipe()`.

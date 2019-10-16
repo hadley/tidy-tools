@@ -2,13 +2,9 @@
 
 ## Introduction/motivation
 
-<!-- Create new file -->
-
 In order to understand R code when you're reading it, you need to somehow execute the code in your head. This requires having a mental model of how R works (sometimes called a notational machine). This model must be much simpler than the real thing!
 
 An important component of that mental model is "function types". This is a shorthand meaning that you understand what are valid inputs (i.e. what types of things are permitted, and how are their sizes related), and how they affect the output. Understanding function types is a bit like unit analysis in physics; that lets you check that you're at least in the right ballpark.
-
-Confession: I'm not 100% sure how this helps you in practice; but I very strongly believe that it does, and a lot of the time when I'm reviewing code I see mistakes that are obvious to me because the types are inconsistent.
 
 ---
 
@@ -30,6 +26,10 @@ Take a minute to discuss it with your neighbour.
 `x` is a numeric or logical vector (ignoring complex)
 `y` is a numeric vector of length 1.
 
+Analyse `sapply()` ?
+
+Draw some diagrams showing functions that narrow types vs. functions that expand them? Come up with expand where combination of fairly simple functions leads to explosion of types?
+
 ## Vector types
 
 Today I'm going to focus on function that work with vectors, because this covers most functions  that you might encounter in a data analysis. 
@@ -45,13 +45,15 @@ special: data.frame, NA
 
 ---
 
-The "type" of a function is the type of its inputs, and the type of its output. Can you describe the type of these functions: (Also think about the sizes!)
+The "type" of a function is the type of its inputs, and the type of its output. Can you describe the type of these functions:
 
 * `mean()`
 * `diff()`
+* `sqrt()`
 * `dplyr::first()`
-* `dplyr::lag()`
 * `paste()` (with `collapse`)
+
+Challenge: think about sizes too.
 
 (Remeber red post-it means you need help; green means that you're done)
 
@@ -114,7 +116,25 @@ This behaviour is called **recycling** because the shorter vector is recycled to
 1:3 + 1:3
 ```
 
+```{r}
+paste(1:2, 1:3)
+
+# note different warnings
+1:2 + 1:3
+cbind(1:2, 1:3)
+pmin(1:2, 1:3)
+
+data.frame(1:2, 1:3)
+```
+
 Generally, in the tidyverse we're moving towards a more restricted version of recycling where we only recycle vectors of length 1 and throw an error for everything else.
+
+```{r}
+library(dplyr)
+df <- data.frame(X = 1:3)
+df %>% mutate(y = 1)
+df %>% mutate(y = 1:2)
+```
 
 ## More precision with vctr
 
@@ -174,7 +194,8 @@ An S3 object is just an object with a class attribute. And you can change the cl
 
 ```{r}
 x <- factor(1:10)
-class(x) <- "data.frame"
+class(x)
+class(x) <- "Date"
 ```
 
 S3 is the type of system that lets you point the gun at your foot. Just don't pull the trigger.
@@ -282,7 +303,7 @@ bizarro.character <- function(x) {
 * a logical method which inverts TRUE/FALSE
 * a data frame method that bizarros the column names, as well as each column.
 
-Finish that? Write some documentation and some basic tests.
+Finish that? Write some documentation and some basic tests. Get check passing.
 
 ---
 
@@ -312,33 +333,23 @@ test_that("bizarro factors have levels reversed", {
 
 ## Types and generics
 
-* `mean2()`
-* `median2()`
+**Your turn** What type of output should you get? (maybe it shouldn't allowed, and you should error)
 
-
-**Your turn** What should `mean()` of an integer return? What should the mean of a date return? How would you write the invariants?
-
-Let's define the basics of the generic.
-
-```{r}
-mean2 <- function(x, na.rm = FALSE) {
-  UseMethod("mean2")
-}
-
-mean2.numeric <- function(x, na.rm = FALSE) {
-  if (na.rm) {
-    x <- x[!is.na(x)]
-  }
+  logical   -> numeric
+  numeric   -> numeric
+  date      -> date-time (hint: convert to a date time)
+  date-time -> date-time
+  duration  -> duration
+  list      -> error
+  character -> error
+  factor    -> error
+  ordered   -> error
+  ??? ->       error
   
-  sum(x) / length(x)
-} 
+**Your turn**: Make a mean2 generic and implement as many methods as you can in 10 minutes.
 
-mean2.POSIXct <- function(x, na.rm = FALSE) {
-  new_datetime(mean2(vec_data(x)))
-}
-```
+Need to show example of date or duraton method - pattern of stripping data, applying function, then restoring attributes.
 
-**Your turn**: Implement `mean2.Date`
 
 ## Combining data frames
 

@@ -80,6 +80,8 @@ find_var <- function(name, env) {
   }
 }
 
+# Then talk about terminating recursion
+
 find_var <- function(name, env) {
   if (identical(env, empty_env())) {
     stop("Can't find ", name)
@@ -181,7 +183,6 @@ var <- function(x, na.rm = FALSE) 100
 my_sd(1:5)
 ```
 
-
 **Your turn**:  Add the following line:
 
 ```{r}
@@ -255,24 +256,7 @@ It's telling you (in a roundabout way) that your `NAMESPACE` depends on a packag
 * `DESCRIPTION` is all about package level.
 * `NAMESPACE` is at function level.
 
-### Imports vs suggests
-
-Main decision is whether to put function in imports or suggests. Generally, imports is the right place. There are a few exceptions that should go in suggests:
-
-* Optional, low-benefit and/or high-cost.
-* Only needed in tests (i.e. other developers need it)
-* Only needed in examples/vignettes (common for data package)
-* Extending package by providing methods
-
-If suggested, you should protect code:
-
-```{r}
-if (requireNamespace("ggplot2", quietly = FALSE)) {
-  
-}
-```
-
-`use_package(type = "suggest")` will remind you how to do this.
+Why didn't stats need this? Because it's a recommended package; so R knows that it's always going to be avaiable/installed.
 
 ## When to take a dependency?
 
@@ -321,6 +305,25 @@ Other teams have different constraints _and_ different values.
 ```{r}
 glimpse(itdepends::dep_weight(c("data.table", "dplyr")))
 ```
+
+### Imports vs suggests
+
+Main decision is whether to put function in imports or suggests. Generally, imports is the right place. There are a few exceptions that should go in suggests:
+
+* Optional, low-benefit and/or high-cost.
+* Only needed in tests (i.e. other developers need it)
+* Only needed in examples/vignettes (common for data package)
+* Extending package by providing methods
+
+If suggested, you should protect code:
+
+```{r}
+if (requireNamespace("ggplot2", quietly = FALSE)) {
+  
+}
+```
+
+`use_package(type = "suggest")` will remind you how to do this.
 
 ## Case studies
 
@@ -378,6 +381,7 @@ file_copy(path1, path2)
 file_copy(path1, path2)
 ```
 
+* unicode file names
 * how heavy is fs?
 * how does `file_copy()` differ from `file.copy()`?
 * what other benefits does fs have? <http://fs.r-lib.org/>
