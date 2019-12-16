@@ -1,11 +1,11 @@
 # Function interface
 
+Goal for today is focus on the interface of functions, because I think this is an important change in mindset when you start developing functions. You have to think how they fit together into a greater whole.
+
 * interface = outside
 * implementation = inside
 
-<http://principles.tidyverse.org/>
-
-Goal for today is focus on the interface of functions, because I think this is an important change in mindset when you start developing functions. You have to think how they fit together into a greater whole.
+More (very rough thoughts at) <http://design.tidyverse.org/>
 
 **Your turn**: What are the properties of a function that define its interface? (There are at least 9!)
 
@@ -134,8 +134,8 @@ str_to_upper()
 ### Prefixes and suffixes
 
 * `snake_case` vs `camelCase`. I don't think one is intrinsically better  
-  than the other. And I picked snake_case (mostly because of my background with
-  ruby).
+  than the other. But consistency is VERY IMPORTANT. I use snake_case
+  (mostly because of my background with ruby).
 
 * Use prefixes to group together related functions. 
   Main advantage is autocomplete. 
@@ -175,11 +175,18 @@ str_capitalise(x, to = "upper")
 str_capitalise(x, to = "lower")
 str_capitalise(x, to = "title")
 str_capitalise(x, to = "sentence")
+# BUT
+str_capitalize() # ?
 ```
 
 ## Arguments
 
-Outline topics coming up.
+* Names
+* Types
+* Required arguments
+* Hidden arguments
+* Enumms
+* Keeping arguments independent
 
 ### Names
 
