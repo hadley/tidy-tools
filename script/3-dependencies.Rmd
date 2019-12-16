@@ -8,6 +8,14 @@ How and when to use code from other packages.
 * `DESCRIPTION`
 * When should you take a dependency?
 
+## Live coding
+
+Going to switch formats to live coding. Experimenting with it because it allows me to be more flexible.
+
+I will try and slow down, but I'm not very good it. Please tell me if you missed something - if you did, probably other people did too.
+
+I will regularly check my notes into Github. And you can also see the complete script. I'd recommend not looking at it today; but it's a good resource if you want to come back to what you learned in the future.
+
 ## Motivation
 
 ```{r}
@@ -208,6 +216,21 @@ lobstr::ref(stats::var, env_parent(my_sd_env)$var)
 Why doesn't `sqrt()` need a namespace or an import?
 (Hint: what package is this found in? Why is it special?)
 
+### Non-base packages
+
+Things work a little differently (more obviously) when you're using a package in a non-base package:
+
+```{r}
+my_count <- functon(x) {
+  df <- tibble(x = x)
+  count(df, x)
+}
+```
+
+You'll see the error straight away so `R CMD check` isn't so important
+
+**Your turn**: Make this function work by adding the necessary imports.
+
 ### Other options
 
 ```{r}
@@ -228,6 +251,19 @@ For functions that you only use in few functions I think this is easier for the 
 * Never use `@import`
 * Prefer `::`
 * Use `@importFrom` when `::` gets annoying, or for infix functions (more on that later)
+
+### Never do this
+
+```{r}
+var <- stats::var
+```
+
+* This creates a copy of `stats::vars` when the package is built
+
+* If the functions `stats::var` calls change, you can end up with a function
+  that is subtly out of sync - this causes problems that are nightmarishly
+  difficult to track down (seriously it took me and Winston like 6 months
+  to figure this out the first time we did it.)
 
 ### `NAMESPACE`
 
