@@ -22,17 +22,23 @@ Slides:
 ## Setup
 
 ``` r
-install.packages(c("tidyverse", "devtools"))
+install.packages("devtools")
 install.packages(c("fs", "glue", "lobstr", "rematch2", "sloop", "vctrs"))
 devtools::install_github("r-lib/itdepends")
 ```
 
 ``` r
+# You may also need:
+install.packages(c("ggplot2", "dplyr", "stringr"))
+
+# And get the package we'll work with later:
 usethis::create_from_github("hadley/fordogs", fork = FALSE)
 
 # if you see an error about "unsupported protocol", try this:
 usethis::create_from_github("hadley/fordogs", fork = FALSE, protocol = "https")
 ```
 
-  - When you’re done, put a green post-it on your computer.
-  - If you need help, put up a pink post-it.
+<!-- 
+* When you're done, put a green post-it on your computer. 
+* If you need help, put up a pink post-it.
+-->

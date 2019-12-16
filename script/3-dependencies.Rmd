@@ -221,7 +221,7 @@ Why doesn't `sqrt()` need a namespace or an import?
 Things work a little differently (more obviously) when you're using a package in a non-base package:
 
 ```{r}
-my_count <- functon(x) {
+my_count <- function(x) {
   df <- tibble(x = x)
   count(df, x)
 }

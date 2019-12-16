@@ -34,13 +34,14 @@ deps <- setdiff(deps, c(
   "countdown", # only needed for instructor
   "renv", # only needed for this block
   "itdepends", # not on CRAN
-  "stats", # recommended
-  "MASS", # recommended
+  "bizarro", # making it 
+  c("stats", "MASS", "datasets"), # recommended
+  c("devtools", "roxygen2", "testthat"),
   tidyverse::tidyverse_packages(),
   NULL
 ))
 install <- c(
-  'install.packages(c("tidyverse", "devtools"))',
+  'install.packages("devtools")',
   paste0("install.packages(c(", paste0(encodeString(deps, quote = '"'), collapse = ", "), "))"),
   'devtools::install_github("r-lib/itdepends")'
 )
@@ -49,6 +50,10 @@ install <- c(
 ```
 
 ```{r, eval = FALSE}
+# You may also need:
+install.packages(c("ggplot2", "dplyr", "stringr"))
+
+# And get the package we'll work with later:
 usethis::create_from_github("hadley/fordogs", fork = FALSE)
 
 # if you see an error about "unsupported protocol", try this:
@@ -56,6 +61,7 @@ usethis::create_from_github("hadley/fordogs", fork = FALSE, protocol = "https")
 ```
 
 
+<!-- 
 * When you're done, put a green post-it on your computer. 
 * If you need help, put up a pink post-it.
-
+-->
