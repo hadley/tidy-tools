@@ -1,1 +1,132 @@
 # Dependencies
+
+```{r}
+sd
+
+x <- 1:10
+sd(x)
+
+var <- function(x) 100
+var(x)
+sd(x)
+```
+```{r}
+my_sd <- function(x) sqrt(var(x))
+my_sd(x)
+```
+
+## Scoping
+
+```{r}
+x <- 1
+f <- function() {
+  y <- 2
+  z <- 2
+  g <- function() {
+    z <- 3
+    c(x, y, z)
+  }
+  g()
+}
+f()
+```
+
+* What is an environment?
+  * Where stuff lives
+  * Set of bindings between names and object
+  * Lookup table
+  * Data structure powers scoping
+* How is it different from a list?
+  * Environments are unordered
+  * x <- 1
+  * x
+  * Environments have parent
+
+* What's the "default" environment?
+* How can you see what's inside an environment?
+
+```{r}
+library(rlang)
+env_print(globalenv())
+
+rm(x)
+env_print(globalenv())
+
+rm(var, tb, f, my_sd, install_github)
+env_print(globalenv())
+```
+
+## `find_env()`
+
+```{r}
+find_env <- function(name, env) { 
+  if (identical(env, emptyenv())) {
+    stop("Can't find `", name, "`", call. = FALSE)
+  } else if (env_has(env, name)) {
+    env
+  } else {
+    find_env(name, env_parent(env))
+  }
+}
+
+x <- 1
+find_env("x", globalenv())
+find_env("c", globalenv())
+find_env("asdfsd", globalenv())
+```
+
+```{r}
+find_env("var", get_env(my_sd))
+find_env("var", get_env(sd))
+```
+
+## Your turn
+
+* `create_package("~/desktop/ns")`
+* `use_mit_license()`
+* `use_r("sd")`:
+
+    ```{r}
+    #' My standard deviation function
+    #'
+    #' @param x A numeric vector
+    #' @param na.rm Remove missing values?
+    #' @export
+    my_sd <- function (x, na.rm = FALSE) {
+      sqrt(var(x, na.rm = na.rm))
+    }
+    ```
+
+* `devtools::check()`
+
+## Using a function from another package
+
+* `use_package("other-package")`
+* Either `dplyr::mutate` or `@importFrom dplyr mutate`
+
+* `@importFrom dplyr mutate` affects every function in your package
+  * Slightly better to all import directives in one place
+  * The place to put it is a package documentation file
+  * `use_package_doc()`
+
+* Avoid `@import dplyr`
+  * Some exceptions: `@import rlang` ok, because rlang designed for it
+  * `@import stringr` because all functions have `str_` prefix
+
+
+* `@importFrom` is needed for infix functions, like `@importFrom magrittr %>%`
+* If you also want the user of your package to have access to the pipe, call `use_pipe()` - this "re-exports" `%>%`
+
+## Practice
+
+* Put this in a package called counting
+* Document it
+* Get R CMD check passing
+
+```{r}
+my_count <- function(x) {
+  count(data.frame(x = x), x, sort = TRUE)
+}
+```
+
+
