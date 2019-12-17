@@ -129,4 +129,32 @@ my_count <- function(x) {
 }
 ```
 
+## When to take a dependency?
+
+**Brainstorm**: What are the costs and benefits of a taking a dependency?
+
+Costs:
+* Don't know the details
+* Don't control the code (so update might break your code)
+* Respect their license
+* Download and install time
+* No bragging rights
+
+Benefits:
+* Performance
+* Not your problem
+* Thought through more edge cases / exposed to more people
+* Focus on your problem
+* Don't know how to do it / too hard
+
+**Your turn**: Compare and contrast dplyr with glue. Look at their CRAN pages - and see what you can quantify
+
+* number of github issues: 24 (glue) vs 67 (dplyr)
+* needed packags: 0 (glue) vs 13+ (dplyr)
+* windows package size: 170 kb (glue) vs 3.2 mb (dplyr)
+* install time: 3s (glue) vs 300s (dplyr)
+
+```{r}
+itdepends::dep_weight(c("dplyr", "glue"))
+```
 
