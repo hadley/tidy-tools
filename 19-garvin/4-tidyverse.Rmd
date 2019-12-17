@@ -30,3 +30,9 @@ mtcars %>%
   group_by(cyl) %>% 
   summarise(n = n(), mpg = mean(mpg))
 ```
+
+* `create_package("~/desktop/tidytest")`
+* `use_mit_license()` / `use_gpl3_license()`
+* make two functions: `cyl_plot()` and `cyl_summary()`
+* make it work - remember dependency stuff (`use_something()`, and `::`)
+* get check passing as cleanly as you can
