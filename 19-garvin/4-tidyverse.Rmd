@@ -36,3 +36,41 @@ mtcars %>%
 * make two functions: `cyl_plot()` and `cyl_summary()`
 * make it work - remember dependency stuff (`use_something()`, and `::`)
 * get check passing as cleanly as you can
+
+---
+
+What did we do?
+
+* Remove `library()` calls; and replace with calling `use_package()` once
+* `use_pipe()` OR `@importFrom magrritr %>%` + `use_package(magrittr)`
+* Resolve df-var vs env-var ambiguity by using `.data$`
+* `@importFrom rlang .data` + `use_package("rlang")`
+
+## Tidy evaluation
+
+```{r}
+library(tidyverse)
+
+a <- 1
+df <- data.frame(b = 1)
+
+mutate(df, c = a + b)
+ggplot(df, aes(a, b)) + geom_point()
+
+n <- 2
+ggplot(mtcars, aes(disp, mpg)) + 
+  geom_point() + 
+  geom_smooth(method = "lm", formula = y ~ splines::ns(x, df = n))
+```
+
+**Your turn**: Add this function to your package and get R CMD check passing:
+
+```{r}
+#' @importFrom rlang SOMETHING
+diamonds_summary2 <- function(bins) {
+  ggplot2::diamonds %>% 
+    ggplot2::ggplot(ggplot2::aes(carat, price)) + 
+    ggplot2::geom_hex(bins = bins)
+}
+```
+
