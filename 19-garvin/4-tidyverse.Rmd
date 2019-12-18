@@ -66,11 +66,113 @@ ggplot(mtcars, aes(disp, mpg)) +
 **Your turn**: Add this function to your package and get R CMD check passing:
 
 ```{r}
-#' @importFrom rlang SOMETHING
+#' @importFrom rlang .data
 diamonds_summary2 <- function(bins) {
   ggplot2::diamonds %>% 
-    ggplot2::ggplot(ggplot2::aes(carat, price)) + 
+    ggplot2::ggplot(ggplot2::aes(.data$carat, .data$price)) + 
     ggplot2::geom_hex(bins = bins)
 }
 ```
 
+```{r}
+hexbin <- function(df, x, y, bins = 10) {
+  df %>% 
+    ggplot2::ggplot(ggplot2::aes({{ x }}, {{ y }})) + 
+    ggplot2::geom_hex(bins = bins)
+}
+hexbin(diamonds, carat, price)
+```
+
+
+**Your turn**: Make these functions work and pass R CMD check
+
+```{r}
+piechart <- function(df, x) {
+  ggplot(df) + 
+    geom_bar(aes(x), width = 1) + 
+    coord_polar(theta = "y")
+}
+barchart2 <- function(df, x, y) {
+  plot <- ggplot(df)
+  if (missing(y)) {
+    plot <- plot + geom_bar(aes({{ x }}))
+  } else {
+    plot <- plot + geom_col(aes(x, y))
+  }
+  plot + coord_flip()
+}
+group_summary <- function(df, grp, x) {
+  df %>% 
+    group_by(grp) %>% 
+    summarise(
+      n = n(),
+      min = min(x, na.rm = TRUE),
+      max = max(x, na.rm = TRUE)
+    )
+}
+```
+
+---
+
+```{r}
+group_summary <- function(df, grp, x) {
+  df %>% 
+    group_by({{ grp }}) %>% 
+    summarise(
+      n = n(),
+      min = min({{ x }}, na.rm = TRUE), 
+      max = max({{ x }}, na.rm = TRUE)
+    )
+}
+group_summary(diamonds, cut, carat)
+group_summary(diamonds, color, price)
+```
+
+```{r}
+group_summary <- function(df, grp1, grp2, x) {
+  df %>% 
+    group_by({{ grp1 }}, {{ grp2 }}) %>% 
+    summarise(
+      n = n(),
+      min = min({{ x }}, na.rm = TRUE), 
+      max = max({{ x }}, na.rm = TRUE)
+    )
+}
+group_summary(diamonds, cut, , price)
+group_summary(diamonds, cut, color, price)
+```
+
+```{r}
+group_summary <- function(df, x, ...) {
+  df %>% 
+    group_by(...) %>% 
+    summarise(
+      n = n(),
+      min = min({{ x }}, na.rm = TRUE), 
+      max = max({{ x }}, na.rm = TRUE)
+    )
+}
+group_summary(diamonds, price, cut)
+group_summary(diamonds, price, cut, color)
+```
+
+## Data
+
+* `use_data_raw("name_of_dataset")`
+  * creates an R file in `data-raw` with same name as your dataset
+  * `usethis::use_data()` to create the binary data file that R uses (wrapper around `save()`)
+
+* To document: 
+  * `use_r("data")`
+  *
+      ```R
+      #' Title
+      #'
+      #' @description
+      #' Data dictionary:
+      #'
+      #' * `var1`: description1
+      "name_of_dataset"
+      ```
+
+A little more information at <https://roxygen2.r-lib.org/articles/rd.html#datasets>
