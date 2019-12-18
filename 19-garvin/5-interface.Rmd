@@ -1,0 +1,91 @@
+# Interface
+
+```{r}
+y <- sum(x)
+```
+
+Assuming this code works (with out errors or warnings):
+
+* What do you know about `x`?
+  * Numeric or logical vector (or matrix/array)
+  
+* What do you know about `y`?
+  * Length 1
+  * Numeric
+  
+```{r}
+y <- sapply(x, f)
+```
+
+## What else compose the interface?
+
+What are the properties of a function that define its interface? (There are at least 9)
+
+* Name
+
+* Inputs (arguments)
+  * Names
+  * Types (vector, scalar etc) 
+  * Defaults
+  * Model of evaluation (does it use tidy evaluation?)
+
+* Output
+  * Type
+  * Visibility
+
+* Side-effects
+  * Saving a file to disk
+  * Showing a plot
+  * Printing in the console
+
+* Errors/warnings/messages
+
+```{r}
+hidden <- function(x) invisible(x ^ 2)
+hidden(100)
+x <- hidden(100)
+x
+
+side_effect <- function(x) {
+  
+}
+```
+
+Digression about conflicted package - which I highly recommend.
+
+## String functions
+
+```{r, eval = FALSE}
+strsplit(x, split, ...)
+grep(pattern, x, value = FALSE, ...)
+grepl(pattern, x, ...)
+sub(pattern, replacement, x, ...)
+gsub(pattern, replacement, x, ...)
+regexpr(pattern, text, ...)
+gregexpr(pattern, text, ...)
+regexec(pattern, text, ...)
+substr(x, start, stop)
+nchar(x, type, ...)
+```
+
+What about the interface of these functions makes them to hard to use/remember?
+
+* Names
+  * Confusing
+  * Don't have a common prefix
+  * g should be a suffix
+
+* Arguments
+  * Order inconsistent
+  * Character vector should come first
+  * Names inconsistent (`x` and `text`; `pattern` and `split`)
+
+* Output: `regexpr` not easily used with the other functions
+  
+* Packaging: no easy to find the complete collecitonx
+  
+```{r}
+x <- c("abc", "bca", "dfaaa", "bc")
+str(regexpr("a+", x))
+```
+
