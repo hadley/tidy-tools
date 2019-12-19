@@ -1,5 +1,7 @@
 # Interface
 
+<https://design.tidyverse.org>
+
 ```{r}
 y <- sum(x)
 ```
@@ -88,4 +90,188 @@ What about the interface of these functions makes them to hard to use/remember?
 x <- c("abc", "bca", "dfaaa", "bc")
 str(regexpr("a+", x))
 ```
+
+### Names
+
+```{r}
+strsplit()           # str_split()
+grep()               # str_which()
+grep(value = TRUE)   # str_subset() - str_sub()
+grepl()              # str_detect()
+sub()                # str_replace()
+gsub()               # str_replace_all()
+```
+
+```{r}
+str_which()  # locations in the character vector
+
+x <- c("apple", "banana", "lemon")
+str_which(x, "a")
+
+str_locate() # locations in the individual strings
+str_locate(x, "a")
+```
+
+```{r}
+str_SOMETHING_lgl() # str_detect
+str_SOMETHING_int() # str_which
+str_SOMETHING_chr() # str_subset
+
+str_locate() # str_which
+chr_locate() # str_locate
+```
+
+* Most functions should be verbs (exception is interfaces like ggplot2 where you're building up complex objects with nouns)
+
+* Use prefixes to arrange families of related functions; use suffixes for variation on theme. Motivated by autocomplete
+
+* Think a lot about names. Good name provdes mental hook that aids memory.
+
+* BE CONSISTENT - pick one of snake_case and camelCase and use it!
+
+**Your turn**: What stringr (and other tidyverse ) functions, don't follow these principles? Why not?
+
+* `as.interval()`, `geom_point(na.rm = TRUE)`  - today would create `as_interval()`, `geom_point(na_rm = TRUE)`
+
+(Aside: use `Ctrl + . ` to navigate between files and functions)
+
+* `arrange()` - `arrange(df, desc(x))` 
+   vs `arrange_asc(df, x)`; `arrange_desc(df, x)`
+   `arrange(df, x, desc(y))`
+
+* `left_join()`, `right_join()` -> should be
+  `join_left()`, `join_right()`.
+
+* `filter()`: keeping in or throwing out? 
+  * `cleave()`, `
+
+* UK vs US English - `scale_colour_gray()`
+  * `summarise()` vs `summarize()`
+  * `col`, or `stroke` / `fill`, `col1`, `col2`
+
+## Arguments
+
+* want argument names to be consistent. Both consistent style, and consistent names across functions.
+
+* If the first argument is a data frame: `data`; if it's a vector call it `x`
+
+**Your turn**: Can you divide these function arguments into functional groups?
+
+```{r}
+strsplit(x, split, fixed = TRUE)
+grepl(pattern, x, fixed = TRUE, ignore.case = TRUE)
+gsub(pattern, replacement, x, fixed = TRUE, ignore.case = TRUE)
+gregexpr(pattern, text, fixed = TRUE)
+substr(x, start, stop)
+mutate(df, ...)
+left_join(x, y, by = c("xyz", "def"))
+str_detect(x, pattern, negate = TRUE) # !str_detect(x, pattern)
+```
+
+* Data: `x`, `df`, `y`, `text` - main vector argument
+
+* Descriptors: `pattern`, `replacement`, `by`, `start`, `stop`
+
+* Details: `fixed`, `ignore.case`, `negate` - control the detail of the algorithm. Almost always optional
+
+Order arguments from most important to least important. And least important should have defaults. Putting the "data" first, ensures that it works with the pipe. And required arguments (no defaults), should come be optional arguments (with defaults).
+
+When calling a function, you should always spell out name of details arguments; and don't use names for data arguments.
+
+```{r}
+mean(x, na.rm = TRUE)
+mean(x = x, , TRUE)
+mean(n = T, x)
+
+str_replace_all(x, "[a-z]", "")
+```
+
+Sometimes can have one complicated argument or two simpler arguments:
+
+```{r}
+library(stringr)
+
+hw <- "Hadley Wickham"
+pos <- str_locate_all(hw, "[aeio]")[[1]]
+str_sub(hw, pos[, 1], pos[, 2])
+```
+
+```{r}
+grepl("x", "xxxyyxx", perl = TRUE, fixed = TRUE)
+# engine = "perl"
+# engine = "fixed" 
+# engine = "default"
+
+str_subset("xxxyz", fixed("."))
+str_subset("xxxyz", regex(".", multiline = TRUE))
+```
+
+```{r}
+str_to_lower()
+str_to_sentence()
+str_to_upper()
+str_to_title()
+
+str_change_case(x, "lower", locale = "en")
+
+str_detect_fixed()
+str_detect_regexp()
+str_detect_coll()
+stringi::stri_replace
+```
+
+* Many very simple functions <-> few more complicated functions
+
+* Look independence; orthogonality; Cartesian products; combinatorial explosion - be able to implemnt n approaches to problem A and m approaches to problem B, and n * m solution.
+
+```{r}
+df %>% summarise_all(mean)
+df %>% summarise_at(vars(starts_with("f")), mean)
+df %>% summarise_if(is.numeric, mean)
+
+df %>% summarise(
+  across(is.numeric, mean),
+  across(is.factor, nlevels),
+  n = n()
+)
+df %>% summarise(
+  across(is.numeric & starts_with("f"), mean)
+)
+df %>% summarise(
+  rowMeans(across(is.numeric))
+)
+```
+
+
+## Hidden arguments
+
+```{r}
+str(data.frame(x = "abc"))
+options(stringsAsFactors = FALSE)
+str(data.frame(x = "abc"))
+
+str_to_lower("I", locale = "tr")
+str_to_upper("i", locale = "tr")
+str_to_upper("i", locale = "tr")
+# Statİdentity
+
+sort(letters)
+
+str_sort(c("a", "o", "z", "å", "ø"))
+str_sort(c("a", "o", "z", "å", "ø"), locale = "se")
+
+print(1.23)
+options(OutDec = ",")
+print(1.23)
+```
+
+```{r}
+library(purrr)
+x <- list(list(a = 1), list(a = 2), list(b = 3))
+
+map_dbl(x, "a", .default = NA)
+map_dbl(x, pluck("x"))
+map_dbl(x, function(x, ...) x$a, .default = NA)
+```
+
 
